@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тіньова лабораторія — вебсимулятор затінення</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>Перепроєктуй місто,<span>щоб у ньому було більше тіні</span></h1>
+  <p class="lead">Чому на одній частині шкільного подвір’я приємно навіть у спеку, а на іншій немає де сховатися від Сонця? Розстав <b>дерева, будівлі та навіси</b> і подивись, як рухається тінь протягом дня.</p>
+</header>
+
+<main class="app">
+  <section class="card stage" aria-label="Інтерактивний план подвір’я">
+    <div class="tools" id="tools" role="toolbar" aria-label="Інструменти">
+      <button data-tool="select" class="on">Вибрати</button>
+      <button data-tool="tree">Дерево</button>
+      <button data-tool="building">Будівля</button>
+      <button data-tool="awning">Навіс</button>
+      <button data-tool="sensor">Лавка-датчик</button>
+      <button data-tool="erase">Гумка</button>
+      <button id="heatBtn" class="ghost" aria-pressed="false">Карта тіні за день</button>
+    </div>
+    <div class="canvaswrap"><canvas id="cv" aria-label="План подвір’я зверху, північ угорі"></canvas></div>
+    <div class="timebar">
+      <div class="clock" id="clock">12:00</div>
+      <input type="range" id="time" min="4" max="22" step="0.25" value="13" aria-label="Година доби">
+      <button id="play">▶ Пуск</button>
+    </div>
+    <div class="row" style="margin-bottom:0">
+      <label for="day">Дата: <b id="dayTxt"></b></label><output id="sunTxt"></output>
+      <input type="range" id="day" min="1" max="365" value="172">
+    </div>
+    <div class="seasons">
+      <button class="chip" data-day="172">Літнє сонцестояння</button>
+      <button class="chip" data-day="80">Рівнодення</button>
+      <button class="chip" data-day="355">Зимове сонцестояння</button>
+    </div>
+  </section>
+
+  <aside class="side">
+    <section class="card" aria-live="polite">
+      <h2>Результат</h2>
+      <div class="stats">
+        <div class="stat"><b id="sAvg">–</b><small>території в тіні протягом дня</small><span class="delta" id="dAvg"></span></div>
+        <div class="stat"><b id="sComf">–</b><small>місць із тінню понад півдня</small><span class="delta" id="dComf"></span></div>
+        <div class="stat"><b id="sWorst">–</b><small>година з найменшою тінню</small></div>
+      </div>
+      <canvas id="chart" width="320" height="130" aria-label="Графік частки затіненої території протягом дня"></canvas>
+      <p class="hint" id="nowTxt"></p>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button id="snap">Запам’ятати «до»</button>
+        <button id="clearBase" class="ghost">Скинути порівняння</button>
+      </div>
+      <ul class="sensors" id="sensorList"></ul>
+    </section>
+
+    <section class="card" id="ins" hidden>
+      <h3 id="insTitle">Об’єкт</h3>
+      <div class="row"><label for="f_h">Висота, м</label><output id="o_h"></output><input type="range" id="f_h"></div>
+      <div class="row" id="rs"><label for="f_s" id="lbl_s">Розмір, м</label><output id="o_s"></output><input type="range" id="f_s" min="2" max="30" step="0.5"></div>
+      <div class="row" id="rl"><label for="f_l">Довжина, м</label><output id="o_l"></output><input type="range" id="f_l" min="3" max="30" step="0.5"></div>
+      <button id="del" style="border-color:var(--rose);color:var(--rose)">Видалити</button>
+    </section>
+
+    <section class="card">
+      <h3>Готові сценарії</h3>
+      <div class="tools" style="margin:0">
+        <button data-preset="empty">Порожній двір</button>
+        <button data-preset="school">Шкільний двір</button>
+        <button data-preset="grove">Сквер</button>
+        <button data-preset="block">Забудова</button>
+      </div>
+      <p class="hint">Перетягуй об’єкти мишею або пальцем. Один піксель плану дорівнює 10 см.</p>
+    </section>
+  </aside>
+</main>
+
+<section class="how">
+  <div><h3>Звідки береться тінь</h3><p>Кожен об’єкт відкидає тінь від Сонця. Її довжина залежить від висоти об’єкта та кута Сонця над обрієм:</p><div class="formula">L = h / tan α</div><p>Кут і напрямок Сонця обчислюються для Києва за датою й годиною.</p></div>
+  <div><h3>Що рахує код</h3><p>Тінь будівлі — це опукла оболонка її основи й зсунутого даху. Крона дерева дає видовжену «краплю». Для 4160 клітинок плану перевіряється, чи потрапила вона в тінь, кожні пів години.</p></div>
+  <div><h3>Як перевірити на місцевості</h3><p>Постав лавку-датчик у точку, де є реальна лавка. Порівняй обчислені години тіні зі спостереженнями у вибрану дату й підлаштуй висоту дерев.</p></div>
+</section>
+<p class="foot">Для тих, хто любить математику, екологію, моделювання та інженерні експерименти. Зроблено на HTML, CSS і чистому JavaScript, без бібліотек.</p>
+</div>
+
+<script src="js/script.js"></script>
+</body>
+</html>
